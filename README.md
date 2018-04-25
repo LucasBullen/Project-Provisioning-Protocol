@@ -39,9 +39,7 @@ Instruct the client what actions will be required to provision the project, used
  * :arrow_left: [Result](#provision-instructions-result)
 
 ## Base Protocol
-The communication between the interface and the provisioner uses [JSON RCP v2.0](http://www.jsonrpc.org/specification)
-
-// TODO: explain the messaging process, error messages, json structure
+The communication between the interface and the provisioner uses [JSON RCP v2.0](http://www.jsonrpc.org/specification). The descirption of the base protocol is that same as the one for the Language Server Protocol and can be found in [the "Base Protocol" section of the Language Server Protocol specification](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/specification.md#base-protocol).
 
 ## Project Provisioning Protocol
 ### <a name="initialize"></a>Initialize
