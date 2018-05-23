@@ -44,6 +44,8 @@ The communication between the interface and the provisioner uses [JSON RCP v2.0]
 ## Project Provisioning Protocol
 ### <a name="initialize"></a>Initialize
 > (Client -> Server) A request to begin the project provisioner parameter generation process, this opens and keeps open a connection to a server for future messages
+
+Method: `projectProvisioning/initialize`
 ```typescript
 Initialize {
 	supportMarkdown: Boolean,
@@ -76,6 +78,8 @@ InitializeResult {
 ### <a name="validation"></a>Validation
 > (Client -> Server) A request to validate a set of parameters for project provisioning
 
+Method: `projectProvisioning/validation`
+
 The message contents is the [Provisioning-parameters](#provisioning-parameters) object.
 
 #### <a name="validation-result"></a>Validation Result
@@ -94,6 +98,8 @@ If `errorMessage` is `null` and `erroneousParameters` is empty, then the given p
 
 ### <a name="preview"></a>Preview
 > (Client -> Server) A request to preview the effects a set of parameters would have if used for project provisioning
+
+Method: `projectProvisioning/preview`
 
 The message contents is the [ProvisioningParameters](#provisioning-parameters) object.
 
@@ -115,6 +121,8 @@ PreviewResult {
 ### <a name="provision"></a>Provision
 > (Client -> Server) A request to provision a project with a set of given parameters.
 
+Method: `projectProvisioning/provision`
+
 The message contents is the [ProvisioningParameters](#provisioning-parameters) object.
 
 #### <a name="provision-result"></a>Provision Result
@@ -134,6 +142,8 @@ ProvisionResult: {
 
 ### <a name="provision-instructions"></a>Provision Instructions
 > (Client -> Server)A request to generate a list of files and their contents to provision a project from a set of given parameters
+
+Method: `projectProvisioning/provisionInstructions`
 
 The message contents is the [ProvisioningParameters](#provisioning-parameters) object.
 
