@@ -1,7 +1,7 @@
 # Project Provisioning Protocol
 The Project Provisioning Protocol is used between a project creation tool (the server) and an interface (the client) where a developer wishes to generate a new project. Messages are sent between the client and the server to inform the project creation tool how the user wishes to generate the project, and inform the user what options are available to them. The following diagram illustrates the communications between a tool and an interface through the process of creating a new project.
 
-//TODO create diagrams
+![Diagram outlining an example interaction between a client and a server](images/Project-Provisioning-Protocol-Diagram.png)
 ## Reason For This Protocol
 Coders are do-ers, so when they wish to learn a new language or technology jumping into a new project is one of the first things they do. This allows coders to be exposed to simple ideas, syntaxes, and confirms that all the required technologies they will need are properly configured.
 
@@ -72,7 +72,7 @@ InitializeResult {
  - `validationSupported`: Whether the server is capable of responding to validation requests, informing the client if a set of parameters are valid
  - `previewSupported`: Whether the server is capable of previewing what will be done to provision the project
  - `templates`: A list of [Template](#template) objects defining the template projects available from this provisioner
- - `componentVersions`: A list of [ComponentVersion](#component-versions) objects listing all the components required for this project creation and the versions available
+ - `componentVersions`: A list of [ComponentVersion](#component-version) objects listing all the components required for this project creation and the versions available
  - `defaultProvisioningParameters`: Either a [ProvisioningParameters](#provisioning-parameters) object or null if there are no default values for the interface
 
 ### <a name="validation"></a>Validation
@@ -163,7 +163,6 @@ ProvisionResult: {
  - `openFiles`: A list of relative paths to files that should be displayed to the user through the client, to show that the project has been provisioned
 
 ## Protocol Objects
-//TODO: add descriptors for each parameter in the objects
 
 ### <a name="template"></a>Template
 ```typescript
@@ -174,8 +173,10 @@ Template {
 	componentVersions: ComponentVersion[]
 }
 ```
-Uses:
- - [ComponentVersion](#component-version)
+ - `id`: ID of the template project
+ - `title`: UI name of the template project
+ - `caption`: Short description of the template to be used by the UI, such as a tooltip
+ - `componentVersions`: A list of [ComponentVersion](#component-version) objects listing all the components required for this template creation and the versions available
 
 Used by:
  - [InitializeResult](#initialize-result)
@@ -189,11 +190,14 @@ ComponentVersion {
 	versions: Version[]
 }
 ```
-Uses:
- - [Version](#version)
+ - `id`: ID of the component
+ - `title`: UI name of the component that requires a version selection
+ - `caption`: Short description of the component to be used by the UI, such as a tooltip
+ - `versions`: A list of [Version](#version) objects listing all the available versions of this component
 
 Used by:
  - [Template](#template)
+ - [InitializeResult](#initialize-result)
 
 ### <a name="version"></a>Version
 ```typescript
@@ -203,7 +207,9 @@ Version {
 	caption: String | null
 }
 ```
-Uses:
+ - `id`: ID of the version
+ - `title`: UI name of the version
+ - `caption`: Short description of the version to be used by the UI, such as a tooltip
 
 Used by:
  - [ComponentVersion](#component-version)
@@ -218,9 +224,11 @@ ProvisioningParameters {
 	componentVersionSelections: ComponentVersionSelection[ ],
 }
 ```
-Uses:
- - [TemplateSelection](#template-selection)
- - [ComponentVersionSelection](#component-version-selection)
+ - `name`: Name of the project to be created
+ - `location`: Relative path to the location to provision the project
+ - `version`: Version to define the project at
+ - `TemplateSelection`: A [TemplateSelection](#template-selection) object to use during provisioning
+ - `componentVersionSelections`: A list of [ComponentVersionSelection](#component-version-selection) objects to define which versions of each component will be used during provisioning
 
 Used by:
  - [InitializeResult](#initializeResult)
@@ -236,7 +244,8 @@ ComponentVersionSelection {
 	versionId: String | null
 }
 ```
-Uses:
+ - `id`: ID of the component requiring a version selection
+ - `versionId`: ID of the component's version
 
 Used by:
  - [ProvisioningParameters](#provisioning-parameters)
@@ -248,20 +257,23 @@ TemplateSelection {
 	componentVersions: ComponentVersion[]
 }
 ```
-Uses:
+ - `id`: ID of the template
+ - `versionId`: A list of [ComponentVersion](#component-version) objects listing all the component versions selected for this template
 
 Used by:
  - [ProvisioningParameters](#provisioning-parameters)
 
 ### <a name="erroneous-parameter"></a>Erroneous Parameter
 ```typescript
-ErroneousParameter { 
+ErroneousParameter {
 	parameterType: String, // (name, location, version, template, templateComponentVersion, componentVersion)
 	message: String,
-	componentVersionId: String | null // Only necessary if it is a component version causing the error
+	componentVersionId: String | null
 }
 ```
-Uses:
+ - `parameterType`: Name of the parameter which is causing the error
+ - `message`: UI message describing the error
+ - `componentVersionId`: ID of the component version causing the error, only necessary if it is a component version causing the error
 
 Used by:
  - [ValidationResult](#validation-result)
@@ -276,7 +288,8 @@ Instruction: {
 	content: String
 }
 ```
-Uses:
+ - `path`: A relative path including the file name for the file to be created
+ - `content`: The content of the file to be created
 
 Used by:
  - [ProvisionInstructionsResult](#provision-instructions-result)
