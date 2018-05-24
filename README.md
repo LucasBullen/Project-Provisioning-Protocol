@@ -2,17 +2,27 @@
 The Project Provisioning Protocol is used between a project creation tool (the server) and an interface (the client) where a developer wishes to generate a new project. Messages are sent between the client and the server to inform the project creation tool how the user wishes to generate the project, and inform the user what options are available to them. The following diagram illustrates the communications between a tool and an interface through the process of creating a new project.
 
 ![Diagram outlining an example interaction between a client and a server](images/Project-Provisioning-Protocol-Diagram.png)
-## Reason For This Protocol
+## Content
+ * [Reason For This Protocol](#reason-for-this-protocol)
+ * [Contributing](#contributing)
+ * [Message Overview](#message-overview)
+ * [Base Protocol](#base-protocol)
+ * [Project Provisioning Protocol](#project-provisioning-protocol)
+ * [Protocol Objects](#protocol-objects)
+ * [Example Interactions](#example-interactions)
+ * [License](#license)
+
+## <a name="reason-for-this-protocol"></a>Reason For This Protocol
 Coders are do-ers, so when they wish to learn a new language or technology jumping into a new project is one of the first things they do. This allows coders to be exposed to simple ideas, syntaxes, and confirms that all the required technologies they will need are properly configured.
 
 However, without a common protocol for creating projects not all technologies offer such a feature to users, leaving them behind in the orientation process of that technology. This is caused by valid reasons. Generating the support for new project creation across multiple interfaces (such as IDEs, web sites, or CLIs) is costly to developers and if they do create project provisioners, it is not ensured that they will be made in such a way that helps new users, also updates to all the different interfaces would be costly, leading to outdated tools only confusing new users more.
 
 With a common protocol for project creation (or provisioning), technology developers only create one provisioning tool and any interface would be able to implement it, and these provisioning tools will be held to a higher standard and as a community we can decided what are the features that will most help with onboarding developers to new technologies.
 
-## Contributing
+## <a name="contributing"></a>Contributing
 The Project Provisioning Protocol is in its beginning stages, if this project sparks ideas that you think would add value to the project, [create an issue](https://github.com/LucasBullen/Project-Provisioning-Protocol/issues) so we can discuss it.
 
-## Message overview
+## <a name="message-overview"></a>Message Overview
 Create the connection between an interface and the provisioner
 
  * :arrow_right: [Initialize](#initialize)
@@ -38,10 +48,10 @@ Instruct the client what actions will be required to provision the project, used
  * :arrow_right: [ProvisionInstructions](#provision-instructions)
  * :arrow_left: [Result](#provision-instructions-result)
 
-## Base Protocol
+## <a name="base-protocol"></a>Base Protocol
 The communication between the interface and the provisioner uses [JSON RCP v2.0](http://www.jsonrpc.org/specification). The descirption of the base protocol is that same as the one for the Language Server Protocol and can be found in [the "Base Protocol" section of the Language Server Protocol specification](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/specification.md#base-protocol).
 
-## Project Provisioning Protocol
+## <a name="project-provisioning-protocol"></a>Project Provisioning Protocol
 ### <a name="initialize"></a>Initialize
 > (Client -> Server) A request to begin the project provisioner parameter generation process, this opens and keeps open a connection to a server for future messages
 
@@ -162,7 +172,7 @@ ProvisionResult: {
  - `newFiles`: A list of [Instruction](#instruction) objects that instruct the client on the files that need to be created for project provisioning
  - `openFiles`: A list of relative paths to files that should be displayed to the user through the client, to show that the project has been provisioned
 
-## Protocol Objects
+## <a name="protocol-objects"></a>Protocol Objects
 
 ### <a name="template"></a>Template
 ```typescript
@@ -220,18 +230,18 @@ ProvisioningParameters {
 	name: String,
 	location: String | null, //Is always null if InitializeRequest->allowFileCreation == false
 	version: String | null,
-	TemplateSelection: TemplateSelection | null,
+	templateSelection: TemplateSelection | null,
 	componentVersionSelections: ComponentVersionSelection[ ],
 }
 ```
  - `name`: Name of the project to be created
  - `location`: Relative path to the location to provision the project
  - `version`: Version to define the project at
- - `TemplateSelection`: A [TemplateSelection](#template-selection) object to use during provisioning
+ - `templateSelection`: A [TemplateSelection](#template-selection) object to use during provisioning
  - `componentVersionSelections`: A list of [ComponentVersionSelection](#component-version-selection) objects to define which versions of each component will be used during provisioning
 
 Used by:
- - [InitializeResult](#initializeResult)
+ - [InitializeResult](#initialize-result)
  - [Validation](#validation)
  - [Preview](#preview)
  - [Provision](#provision)
@@ -294,13 +304,167 @@ Instruction: {
 Used by:
  - [ProvisionInstructionsResult](#provision-instructions-result)
 
-## Example Interactions
+## <a name="example-interactions"></a>Example Interactions
 
 ### Rust Project in an IDE
-// TODO
+The user opens the IDE and wishes to create a new Rust project. They then open the New Project Wizard.
+
+**Method**: `projectProvisioning/initialize`
+**Direction**: `Client -> Server`
+**Message**:
+```typescript
+{
+	supportMarkdown: true,
+	allowFileCreation: true
+}
+```
+
+**Method**: `projectProvisioning/initialize`
+**Direction**: `Server -> Client`
+**Message**:
+```typescript
+{
+    versionRequired: false,
+    validationSupported: true,
+    previewSupported: true,
+    templates: [{
+		id: 'hello_world',
+		title: 'Hello World Project',
+		caption: 'A basic Rust project that outputs \'Hello World\' to the console',
+		componentVersions: []
+	},{
+		id: 'crates',
+		title: 'External Crate Example Project',
+		caption: 'Cargo project that depends on the `rand` external crate',
+		componentVersions: [{
+			id: 'rand_version',
+			title: 'rand Version',
+			caption: 'The version of the `rand` crate that will be used',
+			versions: [{
+				id: '0.5.0',
+				title: '0.5.0',
+				caption: null
+			}{
+				id: '0.4.2',
+				title: '0.4.2',
+				caption: null
+			}]
+		}]
+	}],
+    componentVersions: [],
+    defaultProvisioningParameters: {
+		name: 'new_rust_project',
+		location: '/new_rust_project',
+		version: null,
+		templateSelection: {
+			id: 'hello_world',
+			componentVersions: []
+		},
+		componentVersionSelections: []
+	}
+}
+```
+The returned information is then used by the client to build the wizard for the user to fill in. As the user fills in the various fields, the inputed parameters are validated.
+
+**Method**: `projectProvisioning/validation`
+**Direction**: `Client -> Server`
+**Message**:
+```typescript
+{
+	name: 'my_rust_project',
+	location: 'invalid/path/my_rust_project
+	version: null,
+	templateSelection: {
+		id: 'hello_world',
+		componentVersions: []
+	},
+	componentVersionSelections: []
+}
+```
+
+**Method**: `projectProvisioning/validation`
+**Direction**: `Server -> Client`
+**Message**:
+```typescript
+{
+	errorMessage: 'Unable to create a new folder in the given location',
+	erroneousParameters: [{
+		parameterType: 'location'
+		message: 'Unable to create a new folder in the given location',
+		componentVersionId: null
+	}]
+}
+```
+After all the errors are addressed, the user wishes to review their inputs before creating the project, so they press "Next" in the wizard.
+
+**Method**: `projectProvisioning/preview`
+**Direction**: `Client -> Server`
+**Message**:
+```typescript
+{
+	name: 'my_rust_project',
+	location: 'path/to/workspace/rust_projects/my_rust_project
+	version: null,
+	templateSelection: {
+		id: 'hello_world',
+		componentVersions: []
+	},
+	componentVersionSelections: []
+}
+```
+
+**Method**: `projectProvisioning/preview`
+**Direction**: `Server -> Client`
+**Message**:
+```typescript
+{
+	errorMessage: null,
+	erroneousParameters: [],
+	message: '# Steps that will be take to create the project
+	
+	 - A new directory named `my_rust_project` will be created in `path/to/workspace/rust_projects/`
+		- `mkdir path/to/workspace/rust_projects/my_rust_project`
+	 - This directory will contain a new directory called `src` which will contain `main.rs`
+	 	- `touch path/to/workspace/rust_projects/my_rust_project/main.rs`
+	 - `main.rs` will contain the required Rust code to output "Hello World"
+		- `echo "fn main() { println!(\"Hello, world!\"); }" > path/to/workspace/rust_projects/my_rust_project/main.rs`'
+}
+```
+
+The user is now confident in what will happen when they confirm the provisioning and press "Finish".
+
+**Method**: `projectProvisioning/provision`
+**Direction**: `Client -> Server`
+**Message**:
+```typescript
+{
+	name: 'my_rust_project',
+	location: 'path/to/workspace/rust_projects/my_rust_project
+	version: null,
+	templateSelection: {
+		id: 'hello_world',
+		componentVersions: []
+	},
+	componentVersionSelections: []
+}
+```
+
+**Method**: `projectProvisioning/provision`
+**Direction**: `Server -> Client`
+**Message**:
+```typescript
+{
+	errorMessage: null,
+	erroneousParameters: [],
+	newFiles: ['path/to/workspace/rust_projects/my_rust_project/main.rs'],
+	openFiles: ['path/to/workspace/rust_projects/my_rust_project/main.rs']
+}
+```
+
+The user is now presented with the `main.rs` file and can begin working.
 ### .NET Template Project Provisioning Web Site
 // TODO
 ### DSL Project Creation From a CLI
 // TODO
-## License
+## <a name="license"></a>License
 [Eclipse Public License 2.0](https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html)
