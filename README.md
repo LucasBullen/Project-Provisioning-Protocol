@@ -7,7 +7,7 @@ The Project Provisioning Protocol is used between a project creation tool (the s
  * [Contributing](#contributing)
  * [Message Overview](#message-overview)
  * [Base Protocol](#base-protocol)
- * [Project Provisioning Protocol](#project-provisioning-protocol)
+ * [Project Provisioning Protocol](#project-provisioning-protocol-outline)
  * [Protocol Objects](#protocol-objects)
  * [Example Interactions](#example-interactions)
  * [License](#license)
@@ -51,7 +51,7 @@ Instruct the client what actions will be required to provision the project, used
 ## <a name="base-protocol"></a>Base Protocol
 The communication between the interface and the provisioner uses [JSON RCP v2.0](http://www.jsonrpc.org/specification). The descirption of the base protocol is that same as the one for the Language Server Protocol and can be found in [the "Base Protocol" section of the Language Server Protocol specification](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/specification.md#base-protocol).
 
-## <a name="project-provisioning-protocol"></a>Project Provisioning Protocol
+## <a name="project-provisioning-protocol-outline"></a>Project Provisioning Protocol
 ### <a name="initialize"></a>Initialize
 > (Client -> Server) A request to begin the project provisioner parameter generation process, this opens and keeps open a connection to a server for future messages
 
@@ -141,14 +141,14 @@ The message contents is the [ProvisioningParameters](#provisioning-parameters) o
 ProvisionResult: {
 	errorMessage: String | null,
 	erroneousParameters: ErroneousParameter[],
-	newFiles: String[],
+	location: String,
 	openFiles: String[]
 }
 ```
  - `errorMessage`: If there is an error with the parameters, this is either an overarching error message or an error message that does not relate to any one specific parameter
  - `erroneousParameters`: If there is an error with the parameters, A list of [ErroneousParameter](#erroneous-parameter) objects listing parameter specific errors
- - `newFiles`: A list of absolute paths to files that have been created by the project provisioning
- - `openFiles`: A list of absolute paths to files that should be displayed to the user through the client, to show that the project has been provisioned
+ - `location`: The path to the location that the project was made
+ - `openFiles`: A list of location relative paths to files that should be displayed to the user through the client, to show that the project has been provisioned
 
 ### <a name="provision-instructions"></a>Provision Instructions
 > (Client -> Server)A request to generate a list of files and their contents to provision a project from a set of given parameters
@@ -160,15 +160,17 @@ The message contents is the [ProvisioningParameters](#provisioning-parameters) o
 #### <a name="provision-instructions-result"></a>Provision Instructions Result
 > (Server -> Client) A list of files and their contents to provision a project from a set of given parameters or the errors stopping this list from being generated
 ```typescript
-ProvisionResult: {
+ProvisionInstructionsResult: {
 	errorMessage: String | null,
 	erroneousParameters: ErroneousParameter[],
+	name: String,
 	newFiles: Instruction[],
 	openFiles: String[]
 }
 ```
  - `errorMessage`: If there is an error with the parameters, this is either an overarching error message or an error message that does not relate to any one specific parameter
  - `erroneousParameters`: If there is an error with the parameters, A list of [ErroneousParameter](#erroneous-parameter) objects listing parameter specific errors
+ - `name`: The name of the project to be created to be used in generaing the new porject's directory if needed
  - `newFiles`: A list of [Instruction](#instruction) objects that instruct the client on the files that need to be created for project provisioning
  - `openFiles`: A list of relative paths to files that should be displayed to the user through the client, to show that the project has been provisioned
 
