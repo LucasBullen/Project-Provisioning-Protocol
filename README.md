@@ -163,6 +163,7 @@ The message contents is the [ProvisioningParameters](#provisioning-parameters) o
 ProvisionInstructionsResult: {
 	errorMessage: String | null,
 	erroneousParameters: ErroneousParameter[],
+	message: String | null,
 	name: String,
 	newFiles: Instruction[],
 	openFiles: String[]
@@ -170,6 +171,7 @@ ProvisionInstructionsResult: {
 ```
  - `errorMessage`: If there is an error with the parameters, this is either an overarching error message or an error message that does not relate to any one specific parameter
  - `erroneousParameters`: If there is an error with the parameters, A list of [ErroneousParameter](#erroneous-parameter) objects listing parameter specific errors
+ - `message`: An optional message explaining any extra steps the user will have to take to initializes the project from the files given. Is interpreted as markdown if `Initialize.supportMarkdown == True`
  - `name`: The name of the project to be created to be used in generaing the new porject's directory if needed
  - `newFiles`: A list of [Instruction](#instruction) objects that instruct the client on the files that need to be created for project provisioning
  - `openFiles`: A list of relative paths to files that should be displayed to the user through the client, to show that the project has been provisioned
