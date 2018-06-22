@@ -6,6 +6,11 @@
  * [Example Interactions](#example-interactions)
 
 ## <a name="message-overview"></a>Message Overview
+Get the project types the server is able to provision
+
+ * :arrow_right: [ProjectTypes](#project-types)
+ * :arrow_left: [Result](#project-types-result)
+
 Create the connection between an interface and the provisioner
 
  * :arrow_right: [Initialize](#initialize)
@@ -35,6 +40,18 @@ Instruct the client what actions will be required to provision the project, used
 The communication between the interface and the provisioner uses [JSON RCP v2.0](http://www.jsonrpc.org/specification). The descirption of the base protocol is that same as the one for the Language Server Protocol and can be found in [the "Base Protocol" section of the Language Server Protocol specification](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/specification.md#base-protocol).
 
 ## <a name="project-provisioning-protocol-outline"></a>Project Provisioning Protocol
+### <a name="project-types"></a>Project Types
+> (Client -> Server) A request to know what types of projects this server can provision
+
+Method: `projectProvisioning/projectTypes`
+
+The content of this message can be `null` as it will be ignored.
+
+#### <a name="projects-types-result"></a>Projects Types Result
+> (Server -> Client) A response to inform the client what projects the server can provision
+
+The response of this message will be a list of Projects: [ProjectTypeDefinition](#project-type-definition)[ ]
+
 ### <a name="initialize"></a>Initialize
 > (Client -> Server) A request to begin the project provisioner parameter generation process, this opens and keeps open a connection to a server for future messages
 
@@ -161,6 +178,21 @@ ProvisionInstructionsResult: {
 
 ## <a name="protocol-objects"></a>Protocol Objects
 
+### <a name="project-type-definition"></a>Project Type Definition
+```typescript
+ProjectTypeDefinition {
+	id: String,
+	title: String,
+	caption: String | null,
+}
+```
+ - `id`: ID of the project type
+ - `title`: UI name of the project type
+ - `caption`: Short description of the project type to be used by the UI, such as a tooltip
+
+Used by:
+ - [Projects Result](#projects-result)
+
 ### <a name="template"></a>Template
 ```typescript
 Template {
@@ -214,6 +246,7 @@ Used by:
 ### <a name="provisioning-parameters"></a>Provisioning Parameters
 ```typescript
 ProvisioningParameters {
+	projectTypeId: String | null,
 	name: String,
 	location: String | null, //Is always null if InitializeRequest->allowFileCreation == false
 	version: String | null,
@@ -221,6 +254,7 @@ ProvisioningParameters {
 	componentVersionSelections: ComponentVersionSelection[ ],
 }
 ```
+ - `projectTypeId`: The ID of the project type (See [ProjectTypeDefinition](#project-type-definition)) or `null` to use the server's default or if the server has only one project type
  - `name`: Name of the project to be created
  - `location`: Relative path to the location to provision the project
  - `version`: Version to define the project at
@@ -294,6 +328,21 @@ Used by:
 ## <a name="example-interactions"></a>Example Interactions
 
 ### Rust Project in an IDE
+The user opens the IDE and the IDE needs to know what types of projects the server can make
+**Method**: `projectProvisioning/projectTypes`
+**Direction**: `Client -> Server`
+**Message**:`{}`
+
+**Method**: `projectProvisioning/projectTypes`
+**Direction**: `Server -> Client`
+**Message**:
+```[{
+	id: 'rust',
+	title: 'Rust Project',
+	caption: 'Project using the rust programming language',
+}]
+```
+
 The user opens the IDE and wishes to create a new Rust project. They then open the New Project Wizard.
 
 **Method**: `projectProvisioning/initialize`
@@ -340,6 +389,7 @@ The user opens the IDE and wishes to create a new Rust project. They then open t
 	}],
     componentVersions: [],
     defaultProvisioningParameters: {
+		projectTypeId: 'rust',
 		name: 'new_rust_project',
 		location: '/new_rust_project',
 		version: null,
@@ -358,6 +408,7 @@ The returned information is then used by the client to build the wizard for the 
 **Message**:
 ```typescript
 {
+	projectTypeId: 'rust',
 	name: 'my_rust_project',
 	location: 'invalid/path/my_rust_project
 	version: null,
@@ -389,6 +440,7 @@ After all the errors are addressed, the user wishes to review their inputs befor
 **Message**:
 ```typescript
 {
+	projectTypeId: 'rust',
 	name: 'my_rust_project',
 	location: 'path/to/workspace/rust_projects/my_rust_project
 	version: null,
@@ -425,6 +477,7 @@ The user is now confident in what will happen when they confirm the provisioning
 **Message**:
 ```typescript
 {
+	projectTypeId: 'rust',
 	name: 'my_rust_project',
 	location: 'path/to/workspace/rust_projects/my_rust_project
 	version: null,
